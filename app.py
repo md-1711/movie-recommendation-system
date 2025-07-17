@@ -2,6 +2,7 @@ import pickle
 import streamlit as st
 import requests
 import os
+import gdown
 
 
 def fetch_poster(movie_id):
@@ -30,7 +31,22 @@ st.header('Movie Recommender System')
 model_path = os.path.join(os.path.dirname(__file__), 'model', 'movie_list.pkl')
 movies = pickle.load(open(model_path, 'rb'))
 sim_path = os.path.join(os.path.dirname(__file__), 'model', 'similarity.pkl')
-similarity = pickle.load(open(sim_path, 'rb'))
+
+# Step 1: Download similarity.pkl if it's not already present
+if not os.path.exists(sim_path):
+    st.warning("Downloading similarity model...")
+    url = "https://drive.google.com/uc?id=1V637z1klyncpqTwx468TSaLPCI4zTMif"
+    os.makedirs(os.path.dirname(sim_path), exist_ok=True)
+    gdown.download(url, sim_path, quiet=False)
+
+# Step 2: Now load the similarity file safely
+try:
+    with open(sim_path, 'rb') as f:
+        similarity = pickle.load(f)
+except Exception as e:
+    st.error(f"❌ Failed to load similarity.pkl: {e}")
+
+
 
 movie_list = movies['title'].values
 selected_movie = st.selectbox(
